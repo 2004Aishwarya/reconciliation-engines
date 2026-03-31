@@ -1,0 +1,822 @@
+<<<<<<< HEAD
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>onelab</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Payments Reconciliation Engine</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111418;
+    --border: #1e2530;
+    --border-bright: #2d3748;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --accent: #00d4ff;
+    --accent2: #00ff88;
+    --warn: #ffd60a;
+    --danger: #ff4757;
+    --orange: #ff6b35;
+    --purple: #a78bfa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+  }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+
+  @keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes countUp {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .fade-in { animation: fadeIn 0.4s ease forwards; }
+  .pulse-dot { animation: pulse-dot 1.5s ease-in-out infinite; }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .card-accent {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(0,212,255,0.08);
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0a0c0f;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn-primary:hover { background: #00b8d9; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,212,255,0.3); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--accent2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    padding: 10px 20px;
+    border: 1px solid var(--accent2);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn-secondary:hover { background: rgba(0,255,136,0.08); transform: translateY(-1px); }
+
+  .btn-warn {
+    background: transparent;
+    color: var(--warn);
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    padding: 10px 20px;
+    border: 1px solid var(--warn);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn-warn:hover { background: rgba(255,214,10,0.08); transform: translateY(-1px); }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .tag-danger { background: rgba(255,71,87,0.15); color: var(--danger); border: 1px solid rgba(255,71,87,0.3); }
+  .tag-warn { background: rgba(255,214,10,0.12); color: var(--warn); border: 1px solid rgba(255,214,10,0.3); }
+  .tag-orange { background: rgba(255,107,53,0.15); color: var(--orange); border: 1px solid rgba(255,107,53,0.3); }
+  .tag-purple { background: rgba(167,139,250,0.15); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
+  .tag-ok { background: rgba(0,255,136,0.1); color: var(--accent2); border: 1px solid rgba(0,255,136,0.25); }
+
+  .table-wrapper { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(30,37,48,0.6);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .row-danger td { background: rgba(255,71,87,0.05); }
+  .row-warn td { background: rgba(255,214,10,0.04); }
+  .row-orange td { background: rgba(255,107,53,0.05); }
+  .row-purple td { background: rgba(167,139,250,0.05); }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .stat-platform::before { background: linear-gradient(90deg, var(--accent), transparent); }
+  .stat-bank::before { background: linear-gradient(90deg, var(--accent2), transparent); }
+  .stat-gap::before { background: linear-gradient(90deg, var(--danger), transparent); }
+  .stat-count::before { background: linear-gradient(90deg, var(--warn), transparent); }
+
+  .stat-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    animation: countUp 0.5s ease forwards;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .verify-result {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    background: #050709;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+  }
+
+  .section-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .header-glow {
+    text-shadow: 0 0 30px rgba(0,212,255,0.5);
+  }
+
+  .live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--accent2);
+    letter-spacing: 0.1em;
+  }
+  .live-dot {
+    width: 6px; height: 6px;
+    background: var(--accent2);
+    border-radius: 50%;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useCallback } = React;
+
+// ─── DATA GENERATION ─────────────────────────────────────────────────────────
+function generateData() {
+  const base = [
+    { id: "TXN-001", date: "2026-03-02", amount: 150.00, merchant: "Acme Corp",    type: "PAYMENT" },
+    { id: "TXN-002", date: "2026-03-05", amount: 89.99,  merchant: "Beta LLC",     type: "PAYMENT" },
+    { id: "TXN-003", date: "2026-03-07", amount: 250.50, merchant: "Gamma Inc",    type: "PAYMENT" },
+    { id: "TXN-004", date: "2026-03-10", amount: 45.00,  merchant: "Delta Co",     type: "PAYMENT" },
+    { id: "TXN-005", date: "2026-03-12", amount: 320.75, merchant: "Epsilon Ltd",  type: "PAYMENT" },
+    { id: "TXN-006", date: "2026-03-15", amount: 180.20, merchant: "Zeta Corp",    type: "PAYMENT" },
+    { id: "TXN-007", date: "2026-03-18", amount: 95.60,  merchant: "Eta Inc",      type: "PAYMENT" },
+    { id: "TXN-008", date: "2026-03-20", amount: 410.00, merchant: "Theta LLC",    type: "PAYMENT" },
+    { id: "TXN-009", date: "2026-03-22", amount: 67.33,  merchant: "Iota Co",      type: "PAYMENT" },
+    { id: "TXN-010", date: "2026-03-25", amount: 200.00, merchant: "Kappa Ltd",    type: "PAYMENT" },
+    { id: "TXN-011", date: "2026-03-28", amount: 133.45, merchant: "Lambda Corp",  type: "PAYMENT" },
+    // GAP 1: Month-end lag — settles in April
+    { id: "TXN-012", date: "2026-03-31", amount: 500.00, merchant: "Mu Payments",  type: "PAYMENT" },
+    // GAP 2: Rounding error
+    { id: "TXN-013", date: "2026-03-15", amount: 100.005,merchant: "Nu Store",     type: "PAYMENT" },
+    // Normal
+    { id: "TXN-014", date: "2026-03-19", amount: 77.80,  merchant: "Xi Corp",      type: "PAYMENT" },
+    { id: "TXN-015", date: "2026-03-24", amount: 390.10, merchant: "Omicron Ltd",  type: "PAYMENT" },
+  ];
+
+  const platform = base.map(t => ({ ...t }));
+
+  // Build bank settlements
+  const bank = [];
+
+  // Normal settlements (1–2 day lag)
+  const normalIds = ["TXN-001","TXN-002","TXN-003","TXN-004","TXN-005",
+                     "TXN-006","TXN-007","TXN-008","TXN-009","TXN-010",
+                     "TXN-011","TXN-014","TXN-015"];
+
+  const settleDates = {
+    "TXN-001":"2026-03-04","TXN-002":"2026-03-07","TXN-003":"2026-03-09",
+    "TXN-004":"2026-03-12","TXN-005":"2026-03-14","TXN-006":"2026-03-17",
+    "TXN-007":"2026-03-20","TXN-008":"2026-03-22","TXN-009":"2026-03-24",
+    "TXN-010":"2026-03-27","TXN-011":"2026-03-30","TXN-014":"2026-03-21",
+    "TXN-015":"2026-03-26"
+  };
+
+  normalIds.forEach(id => {
+    const t = base.find(x => x.id === id);
+    bank.push({ id, settlement_date: settleDates[id], amount: t.amount, batch: "BATCH-M03", status: "SETTLED" });
+  });
+
+  // GAP 1: Month-end lag — settles April 2
+  bank.push({ id: "TXN-012", settlement_date: "2026-04-02", amount: 500.00, batch: "BATCH-APR01", status: "SETTLED" });
+
+  // GAP 2: Rounding error — bank rounds to 2dp
+  bank.push({ id: "TXN-013", settlement_date: "2026-03-17", amount: 100.01, batch: "BATCH-M03", status: "SETTLED" });
+
+  // GAP 3: Duplicate entry — TXN-008 appears twice in bank
+  bank.push({ id: "TXN-008", settlement_date: "2026-03-22", amount: 410.00, batch: "BATCH-M03-DUP", status: "SETTLED" });
+
+  // GAP 4: Orphan refund — no matching platform transaction
+  bank.push({ id: "REF-999", settlement_date: "2026-03-18", amount: -95.00, batch: "BATCH-REF", status: "REFUND" });
+
+  return { platform, bank };
+}
+
+// ─── RECONCILIATION ENGINE ────────────────────────────────────────────────────
+function reconcile(platform, bank) {
+  const discrepancies = [];
+  const MARCH_END = "2026-03-31";
+  const APRIL_START = "2026-04-01";
+
+  // Index platform by ID
+  const platformMap = {};
+  platform.forEach(t => { platformMap[t.id] = t; });
+
+  // Index bank by ID (detect duplicates)
+  const bankMap = {};
+  const bankDuplicates = new Set();
+  bank.forEach(s => {
+    if (bankMap[s.id]) {
+      bankDuplicates.add(s.id);
+    } else {
+      bankMap[s.id] = s;
+    }
+  });
+
+  // GAP 3: Duplicates
+  bankDuplicates.forEach(id => {
+    const entries = bank.filter(s => s.id === id);
+    discrepancies.push({
+      type: "DUPLICATE",
+      txn_id: id,
+      platform_amount: platformMap[id]?.amount ?? null,
+      bank_amount: entries.reduce((s,e)=>s+e.amount,0),
+      platform_date: platformMap[id]?.date ?? "—",
+      settlement_date: entries.map(e=>e.settlement_date).join(", "),
+      detail: `TXN ${id} appears ${entries.length}× in Bank — overcounts by $${entries[1].amount.toFixed(2)}`,
+      severity: "orange"
+    });
+  });
+
+  // Process platform transactions
+  platform.forEach(t => {
+    const s = bankMap[t.id];
+
+    if (!s) {
+      // GAP 1 check: already settled in April?
+      const aprilEntry = bank.find(b => b.id === t.id && b.settlement_date >= APRIL_START);
+      if (aprilEntry) {
+        discrepancies.push({
+          type: "MONTH_END_LAG",
+          txn_id: t.id,
+          platform_amount: t.amount,
+          bank_amount: aprilEntry.amount,
+          platform_date: t.date,
+          settlement_date: aprilEntry.settlement_date,
+          detail: `Transacted Mar 31 — settled ${aprilEntry.settlement_date} (crosses month boundary)`,
+          severity: "purple"
+        });
+      } else if (!bankDuplicates.has(t.id)) {
+        discrepancies.push({
+          type: "UNMATCHED",
+          txn_id: t.id,
+          platform_amount: t.amount,
+          bank_amount: null,
+          platform_date: t.date,
+          settlement_date: "—",
+          detail: `No bank settlement found for platform transaction`,
+          severity: "danger"
+        });
+      }
+      return;
+    }
+
+    // GAP 2: Rounding check
+    const diff = Math.abs(t.amount - s.amount);
+    if (diff > 0 && diff <= 0.01) {
+      discrepancies.push({
+        type: "ROUNDING_ERROR",
+        txn_id: t.id,
+        platform_amount: t.amount,
+        bank_amount: s.amount,
+        platform_date: t.date,
+        settlement_date: s.settlement_date,
+        detail: `Δ $${diff.toFixed(4)} — rounding on 3dp platform amount (${t.amount}) vs bank 2dp (${s.amount})`,
+        severity: "warn"
+      });
+    }
+  });
+
+  // GAP 4: Orphan refunds — bank entries with no platform match
+  bank.forEach(s => {
+    if (!platformMap[s.id] && !bankDuplicates.has(s.id)) {
+      discrepancies.push({
+        type: "ORPHAN_REFUND",
+        txn_id: s.id,
+        platform_amount: null,
+        bank_amount: s.amount,
+        platform_date: "—",
+        settlement_date: s.settlement_date,
+        detail: `Bank refund/credit with no matching platform transaction`,
+        severity: "danger"
+      });
+    }
+  });
+
+  // Summaries
+  const platformTotal = platform.reduce((s,t) => s + t.amount, 0);
+  const bankTotal = bank.filter((s,i,arr) => arr.findIndex(x=>x.id===s.id&&x.settlement_date===s.settlement_date)===i)
+                        .filter(s => s.settlement_date <= MARCH_END)
+                        .reduce((s,t) => s + t.amount, 0);
+
+  return { discrepancies, platformTotal, bankTotal, gap: platformTotal - bankTotal };
+}
+
+// ─── VERIFY FUNCTION ─────────────────────────────────────────────────────────
+function verify(discrepancies) {
+  const results = [];
+  const find = (type) => discrepancies.find(d => d.type === type);
+
+  const lag = find("MONTH_END_LAG");
+  results.push({
+    name: "GAP-1: Month-End Lag",
+    pass: !!lag && lag.txn_id === "TXN-012" && lag.settlement_date === "2026-04-02",
+    detail: lag ? `✓ TXN-012 detected — settles ${lag.settlement_date}` : "✗ Not detected"
+  });
+
+  const rounding = find("ROUNDING_ERROR");
+  results.push({
+    name: "GAP-2: Summation Rounding Error",
+    pass: !!rounding && rounding.txn_id === "TXN-013",
+    detail: rounding
+      ? `✓ TXN-013 detected — platform $${rounding.platform_amount} vs bank $${rounding.bank_amount}`
+      : "✗ Not detected"
+  });
+
+  const dup = find("DUPLICATE");
+  results.push({
+    name: "GAP-3: Duplicate Entry",
+    pass: !!dup && dup.txn_id === "TXN-008",
+    detail: dup ? `✓ TXN-008 detected — ${dup.detail}` : "✗ Not detected"
+  });
+
+  const orphan = find("ORPHAN_REFUND");
+  results.push({
+    name: "GAP-4: Orphan Refund",
+    pass: !!orphan && orphan.txn_id === "REF-999",
+    detail: orphan ? `✓ REF-999 detected — bank amount $${orphan.bank_amount}` : "✗ Not detected"
+  });
+
+  const total = results.length;
+  const passed = results.filter(r => r.pass).length;
+  return { results, passed, total };
+}
+
+// ─── COMPONENTS ──────────────────────────────────────────────────────────────
+const GAP_META = {
+  MONTH_END_LAG:   { label: "Month-End Lag",    color: "purple", icon: "⏳" },
+  ROUNDING_ERROR:  { label: "Rounding Error",   color: "warn",   icon: "≈" },
+  DUPLICATE:       { label: "Duplicate Entry",  color: "orange", icon: "⊕" },
+  ORPHAN_REFUND:   { label: "Orphan Refund",    color: "danger", icon: "⚠" },
+  UNMATCHED:       { label: "Unmatched",        color: "danger", icon: "✕" },
+};
+
+function StatCard({ label, value, color, prefix = "$", icon }) {
+  return (
+    <div className={`stat-card stat-${color}`}>
+      <div className="stat-label">{label}</div>
+      <div className="stat-value" style={{ color: color === "platform" ? "var(--accent)" : color === "bank" ? "var(--accent2)" : color === "gap" ? "var(--danger)" : "var(--warn)" }}>
+        {prefix}{typeof value === "number" ? value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : value}
+      </div>
+    </div>
+  );
+}
+
+function DataTable({ title, data, columns, accentColor }) {
+  return (
+    <div className="card" style={{ borderColor: accentColor + "40" }}>
+      <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ width: 8, height: 8, background: accentColor, borderRadius: "50%", display: "inline-block" }} className="pulse-dot" />
+        <span className="mono" style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted)", fontWeight: 600 }}>
+          {title}
+        </span>
+        <span className="mono" style={{ marginLeft: "auto", fontSize: 11, color: accentColor }}>
+          {data.length} records
+        </span>
+      </div>
+      <div className="table-wrapper">
+        <table>
+          <thead>
+            <tr>{columns.map(c => <th key={c.key}>{c.label}</th>)}</tr>
+          </thead>
+          <tbody>
+            {data.map((row, i) => (
+              <tr key={i}>
+                {columns.map(c => (
+                  <td key={c.key} className="mono" style={{ color: c.color ? c.color(row) : "var(--text)" }}>
+                    {c.format ? c.format(row[c.key], row) : row[c.key]}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function DiscrepancyTable({ discrepancies }) {
+  if (!discrepancies.length) return null;
+  return (
+    <div className="card card-accent fade-in">
+      <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ width: 8, height: 8, background: "var(--danger)", borderRadius: "50%", display: "inline-block" }} className="pulse-dot" />
+        <span className="mono" style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted)", fontWeight: 600 }}>
+          Discrepancy Report
+        </span>
+        <span className="mono" style={{ marginLeft: "auto", fontSize: 11, color: "var(--danger)" }}>
+          {discrepancies.length} gaps found
+        </span>
+      </div>
+      <div className="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Gap Type</th>
+              <th>Transaction ID</th>
+              <th>Platform Date</th>
+              <th>Settlement Date</th>
+              <th>Platform Amt</th>
+              <th>Bank Amt</th>
+              <th>Δ Amount</th>
+              <th>Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            {discrepancies.map((d, i) => {
+              const meta = GAP_META[d.type] || {};
+              const rowClass = `row-${d.severity}`;
+              const delta = (d.platform_amount != null && d.bank_amount != null)
+                ? (d.platform_amount - d.bank_amount).toFixed(4)
+                : d.platform_amount == null ? `(${Math.abs(d.bank_amount).toFixed(2)})` : `+${d.platform_amount.toFixed(2)}`;
+              return (
+                <tr key={i} className={rowClass}>
+                  <td><span className={`tag tag-${d.severity}`}>{meta.icon} {meta.label}</span></td>
+                  <td className="mono" style={{ color: "var(--accent)", fontWeight: 600 }}>{d.txn_id}</td>
+                  <td className="mono" style={{ color: "var(--muted)" }}>{d.platform_date}</td>
+                  <td className="mono" style={{ color: d.type === "MONTH_END_LAG" ? "var(--purple)" : "var(--muted)" }}>{d.settlement_date}</td>
+                  <td className="mono">{d.platform_amount != null ? `$${d.platform_amount.toFixed(4)}` : "—"}</td>
+                  <td className="mono">{d.bank_amount != null ? `$${d.bank_amount.toFixed(2)}` : "—"}</td>
+                  <td className="mono" style={{ color: d.severity === "warn" ? "var(--warn)" : "var(--danger)", fontWeight: 600 }}>
+                    {delta}
+                  </td>
+                  <td style={{ color: "var(--muted)", fontSize: 12, maxWidth: 280, whiteSpace: "normal" }}>{d.detail}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+function App() {
+  const [data, setData] = useState(null);
+  const [reconciled, setReconciled] = useState(null);
+  const [verifyResult, setVerifyResult] = useState(null);
+  const [step, setStep] = useState(0); // 0=init, 1=generated, 2=reconciled, 3=verified
+  const [showPlatform, setShowPlatform] = useState(false);
+  const [showBank, setShowBank] = useState(false);
+
+  const handleGenerate = () => {
+    const d = generateData();
+    setData(d);
+    setReconciled(null);
+    setVerifyResult(null);
+    setStep(1);
+    setShowPlatform(true);
+    setShowBank(true);
+  };
+
+  const handleReconcile = () => {
+    if (!data) return;
+    const r = reconcile(data.platform, data.bank);
+    setReconciled(r);
+    setStep(2);
+  };
+
+  const handleVerify = () => {
+    if (!reconciled) return;
+    const v = verify(reconciled.discrepancies);
+    setVerifyResult(v);
+    setStep(3);
+  };
+
+  const platformCols = [
+    { key: "id",       label: "Transaction ID", color: () => "var(--accent)" },
+    { key: "date",     label: "Date" },
+    { key: "merchant", label: "Merchant" },
+    { key: "type",     label: "Type",   color: () => "var(--accent2)" },
+    { key: "amount",   label: "Amount", format: v => `$${Number(v).toFixed(4)}`, color: () => "var(--text)" },
+  ];
+
+  const bankCols = [
+    { key: "id",              label: "Transaction ID", color: (row) => row.id.startsWith("REF") ? "var(--danger)" : "var(--accent)" },
+    { key: "settlement_date", label: "Settlement Date", color: (row) => row.settlement_date >= "2026-04-01" ? "var(--purple)" : "var(--muted)" },
+    { key: "batch",           label: "Batch ID", color: () => "var(--muted)" },
+    { key: "status",          label: "Status",   color: (row) => row.status === "REFUND" ? "var(--danger)" : "var(--accent2)" },
+    { key: "amount",          label: "Amount",   format: (v,row) => `$${Number(v).toFixed(2)}`, color: (row) => row.amount < 0 ? "var(--danger)" : "var(--text)" },
+  ];
+
+  return (
+    <div className="grid-bg" style={{ minHeight: "100vh", padding: "0 0 60px" }}>
+      {/* Header */}
+      <div style={{ borderBottom: "1px solid var(--border)", padding: "20px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(10,12,15,0.95)", backdropFilter: "blur(10px)", position: "sticky", top: 0, zIndex: 50 }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span className="mono" style={{ fontSize: 18, fontWeight: 700, color: "var(--accent)", letterSpacing: "-0.02em" }} className="header-glow mono">
+              RECON//ENGINE
+            </span>
+            <span className="tag tag-ok">v1.0</span>
+          </div>
+          <div className="mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.12em", marginTop: 2 }}>
+            PAYMENTS RECONCILIATION · MARCH 2026
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {step >= 1 && <span className="live-indicator"><span className="live-dot pulse-dot" />LIVE DATA</span>}
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 1400, margin: "0 auto", padding: "32px 32px 0" }}>
+
+        {/* Step indicators */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
+          {["Generate Data","Run Reconciliation","Verify Engine"].map((s,i) => (
+            <div key={i} className="mono" style={{ fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", padding: "4px 12px", borderRadius: 3, border: `1px solid ${step > i ? "var(--accent)" : "var(--border)"}`, color: step > i ? "var(--accent)" : "var(--muted)", background: step > i ? "rgba(0,212,255,0.06)" : "transparent", transition: "all 0.3s" }}>
+              {i+1}. {s}
+            </div>
+          ))}
+        </div>
+
+        {/* Controls */}
+        <div className="card" style={{ padding: "20px 24px", marginBottom: 28, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ flex: 1 }}>
+            <div className="mono" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>Reconciliation Period</div>
+            <div className="mono" style={{ fontSize: 14, color: "var(--text)", fontWeight: 600 }}>March 1, 2026 — March 31, 2026</div>
+            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 3 }}>
+              4 gap types planted · 1–2 day settlement lag assumed · Platform = source of truth for intent
+            </div>
+          </div>
+          <button className="btn-primary" onClick={handleGenerate}>⚡ Generate Test Data</button>
+          {step >= 1 && <button className="btn-secondary" onClick={handleReconcile}>⟳ Run Reconciliation</button>}
+          {step >= 2 && <button className="btn-warn" onClick={handleVerify}>✓ Verify Engine</button>}
+        </div>
+
+        {/* Summary Stats */}
+        {reconciled && (
+          <div className="fade-in" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+            <StatCard label="Platform Total (Mar)" value={reconciled.platformTotal} color="platform" />
+            <StatCard label="Bank Total (Mar)" value={reconciled.bankTotal} color="bank" />
+            <StatCard label="Net Gap" value={Math.abs(reconciled.gap)} color="gap" prefix={reconciled.gap >= 0 ? "+$" : "-$"} />
+            <StatCard label="Discrepancies Found" value={reconciled.discrepancies.length} color="count" prefix="" />
+          </div>
+        )}
+
+        {/* Gap type legend */}
+        {reconciled && (
+          <div className="fade-in" style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 24 }}>
+            <span style={{ fontSize: 11, color: "var(--muted)", marginRight: 4, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>Gaps:</span>
+            {Object.entries(GAP_META).filter(([k]) => k !== "UNMATCHED").map(([k, v]) => (
+              <span key={k} className={`tag tag-${v.color}`}>{v.icon} {v.label}</span>
+            ))}
+          </div>
+        )}
+
+        {/* Discrepancy Table */}
+        {reconciled && <div style={{ marginBottom: 28 }}><DiscrepancyTable discrepancies={reconciled.discrepancies} /></div>}
+
+        {/* Data Tables */}
+        {data && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 28 }}>
+            <div className="fade-in">
+              <div className="section-title">Platform Transactions</div>
+              <DataTable title="platform_transactions · march_2026.csv" data={data.platform} columns={platformCols} accentColor="var(--accent)" />
+            </div>
+            <div className="fade-in">
+              <div className="section-title">Bank Settlements</div>
+              <DataTable title="bank_settlements · march_2026.csv" data={data.bank} columns={bankCols} accentColor="var(--accent2)" />
+            </div>
+          </div>
+        )}
+
+        {/* Verify Results */}
+        {verifyResult && (
+          <div className="fade-in" style={{ marginBottom: 28 }}>
+            <div className="section-title">Automated Test Results</div>
+            <div className="card" style={{ borderColor: verifyResult.passed === verifyResult.total ? "var(--accent2)" : "var(--warn)" }}>
+              <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
+                <span className="mono" style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted)", fontWeight: 600 }}>
+                  Test Suite · Reconciliation Engine v1.0
+                </span>
+                <span className="mono" style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: verifyResult.passed === verifyResult.total ? "var(--accent2)" : "var(--warn)" }}>
+                  {verifyResult.passed}/{verifyResult.total} PASSED
+                </span>
+              </div>
+              <div style={{ padding: 16 }}>
+                <div className="verify-result">
+                  {verifyResult.results.map((r, i) => (
+                    <div key={i} style={{ marginBottom: 10 }}>
+                      <span style={{ color: r.pass ? "var(--accent2)" : "var(--danger)", fontWeight: 700 }}>
+                        [{r.pass ? "PASS" : "FAIL"}]
+                      </span>
+                      {" "}
+                      <span style={{ color: "var(--text)", fontWeight: 600 }}>{r.name}</span>
+                      <br />
+                      <span style={{ color: "var(--muted)", paddingLeft: "       " }}>{r.detail}</span>
+                    </div>
+                  ))}
+                  <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)", color: "var(--muted)" }}>
+                    assertion_count: {verifyResult.total}  ·  passed: {verifyResult.passed}  ·  failed: {verifyResult.total - verifyResult.passed}  ·  coverage: {Math.round(verifyResult.passed/verifyResult.total*100)}%
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Production Edge Cases */}
+        <div style={{ marginBottom: 28 }}>
+          <div className="section-title">Production Edge Cases</div>
+          <div className="card" style={{ padding: 24, borderLeft: "3px solid var(--warn)" }}>
+            <div className="mono" style={{ fontSize: 10, color: "var(--warn)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>
+              ⚠ Known Failure Modes in High-Load Production
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {[
+                ["Currency Fluctuation Risk", "If a platform records amounts in real-time exchange rates and the bank settles in a batched rate from later in the day, FX-denominated transactions will systematically appear as rounding errors even when no data error exists — the engine cannot distinguish intentional FX delta from bugs without a reference rate field."],
+                ["Batch-Settlement Grouping", "High-volume payment processors often batch hundreds of micro-transactions into a single bank settlement line with a combined amount and one settlement ID; this engine's 1:1 transaction_id join fails entirely on batched settlements, causing all constituent transactions to appear as 'UNMATCHED' even when every cent is accounted for."],
+                ["Eventual Consistency & Race Conditions", "At scale, platform records are written to sharded databases and may not be globally consistent at the moment reconciliation runs; a transaction that settled correctly could appear as an orphan if its platform record hasn't replicated yet, producing false-positive discrepancies that resolve themselves seconds later — requiring retry logic and idempotent reconciliation runs."]
+              ].map(([title, body], i) => (
+                <div key={i} style={{ display: "flex", gap: 16 }}>
+                  <span className="mono" style={{ color: "var(--warn)", fontSize: 18, lineHeight: 1, marginTop: 2, minWidth: 20 }}>{i+1}.</span>
+                  <div>
+                    <div style={{ fontWeight: 600, marginBottom: 4, color: "var(--text)" }}>{title}</div>
+                    <div style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.7 }}>{body}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Assumptions */}
+        <div>
+          <div className="section-title">Stated Assumptions</div>
+          <div className="card" style={{ padding: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
+              {[
+                ["Settlement Lag", "1–2 business days"],
+                ["Reconciliation Window", "Calendar month (Mar 1–31)"],
+                ["Matching Key", "transaction_id (primary key)"],
+                ["Amount Precision", "Platform: 4dp · Bank: 2dp"],
+                ["Source of Truth", "Platform for intent · Bank for cash"],
+                ["Rounding Threshold", "Δ ≤ $0.01 = rounding error"],
+                ["Currency", "Single-currency USD only"],
+                ["Duplicate Detection", "Same ID × same dataset"],
+              ].map(([k, v]) => (
+                <div key={k} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <span style={{ color: "var(--accent)", marginTop: 1 }}>▸</span>
+                  <div>
+                    <div className="mono" style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.08em" }}>{k}</div>
+                    <div style={{ fontSize: 13, color: "var(--text)" }}>{v}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+>>>>>>> 1781290bc185be48915d4f24088b229d4c6dbf61
+</html>
